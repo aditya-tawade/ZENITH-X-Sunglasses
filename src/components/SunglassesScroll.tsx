@@ -70,41 +70,47 @@ export default function SunglassesScroll() {
 
     const renderCanvas = (index: number) => {
         const canvas = canvasRef.current;
-        const ctx = canvas?.getContext('2d');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
         const img = images[index - 1];
 
-        if (canvas && ctx && img) {
+        if (ctx && img) {
+            // Use logical dimensions since context is scaled by DPR
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
             // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, width, height);
 
-            // Maintain aspect ratio with object-cover logic
-            const canvasRatio = canvas.width / canvas.height;
-            const imgRatio = img.width / img.height;
+            // True full-screen coverage logic (object-cover)
+            // Guarantees no black bars on any device aspect ratio
+            const scale = Math.max(width / img.width, height / img.height);
+            const drawWidth = img.width * scale;
+            const drawHeight = img.height * scale;
 
-            let drawWidth, drawHeight, offsetX, offsetY;
-
-            if (canvasRatio < imgRatio) {
-                drawHeight = canvas.height;
-                drawWidth = canvas.height * imgRatio;
-                offsetX = (canvas.width - drawWidth) / 2;
-                offsetY = 0;
-            } else {
-                drawWidth = canvas.width;
-                drawHeight = canvas.width / imgRatio;
-                offsetX = 0;
-                offsetY = (canvas.height - drawHeight) / 2;
-            }
+            const offsetX = (width - drawWidth) / 2;
+            const offsetY = (height - drawHeight) / 2;
 
             ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
         }
     };
 
-    // Resize canvas to fill screen
+    // Resize canvas to fill screen and handle DPR
     useEffect(() => {
         const handleResize = () => {
             if (canvasRef.current) {
-                canvasRef.current.width = window.innerWidth;
-                canvasRef.current.height = window.innerHeight;
+                const dpr = window.devicePixelRatio || 1;
+                const width = window.innerWidth;
+                const height = window.innerHeight;
+
+                canvasRef.current.width = width * dpr;
+                canvasRef.current.height = height * dpr;
+                canvasRef.current.style.width = `${width}px`;
+                canvasRef.current.style.height = `${height}px`;
+
+                const ctx = canvasRef.current.getContext('2d');
+                if (ctx) ctx.scale(dpr, dpr);
+
                 // Re-render current frame on resize
                 const currentIndex = Math.floor(frameIndex.get());
                 renderCanvas(currentIndex);
@@ -127,7 +133,7 @@ export default function SunglassesScroll() {
         <div ref={containerRef} className="relative h-[400vh] bg-[#050505]">
             {/* Loading Overlay */}
             {isLoading && (
-                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#050505]">
+                <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-[#050505]">
                     <div className="mb-4 h-1 w-48 overflow-hidden rounded-full bg-white/10">
                         <motion.div
                             className="h-full bg-white"
@@ -135,7 +141,7 @@ export default function SunglassesScroll() {
                             animate={{ width: `${loadProgress}%` }}
                         />
                     </div>
-                    <p className="text-xs font-medium tracking-widest text-white/40 uppercase">
+                    <p className="text-[10px] font-medium tracking-[0.2em] text-white/40 uppercase">
                         Loading Zenith X Experience {loadProgress}%
                     </p>
                 </div>
@@ -152,18 +158,18 @@ export default function SunglassesScroll() {
                 <div className="absolute inset-0 pointer-events-none">
                     {/* 0% Scroll - Intro */}
                     <Section progress={scrollYProgress} range={[0, 0.15]}>
-                        <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-white/90 text-center">
+                        <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-white/90 text-center px-4">
                             Zenith X.<br />Vision Perfected.
                         </h1>
                     </Section>
 
                     {/* 30% Scroll - Precision */}
                     <Section progress={scrollYProgress} range={[0.25, 0.45]} align="left">
-                        <div className="max-w-md ml-[10%]">
-                            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white/90 mb-4">
+                        <div className="max-w-md ml-[5%] md:ml-[10%] px-4">
+                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white/90 mb-4">
                                 Precision Crafted Frames.
                             </h2>
-                            <p className="text-lg text-white/60 leading-relaxed">
+                            <p className="text-base sm:text-lg text-white/60 leading-relaxed">
                                 Aero-grade titanium alloy designed to withstand the extremes while weighing next to nothing.
                             </p>
                         </div>
@@ -171,11 +177,11 @@ export default function SunglassesScroll() {
 
                     {/* 60% Scroll - Optics */}
                     <Section progress={scrollYProgress} range={[0.55, 0.75]} align="right">
-                        <div className="max-w-md mr-[10%] text-right">
-                            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white/90 mb-4">
+                        <div className="max-w-md mr-[5%] md:mr-[10%] px-4 text-right">
+                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white/90 mb-4">
                                 Advanced Polarized Optics.
                             </h2>
-                            <p className="text-lg text-white/60 leading-relaxed">
+                            <p className="text-base sm:text-lg text-white/60 leading-relaxed">
                                 Proprietary lens technology that filters light for unmatched clarity and depth perception.
                             </p>
                         </div>
@@ -183,11 +189,11 @@ export default function SunglassesScroll() {
 
                     {/* 90% Scroll - CTA */}
                     <Section progress={scrollYProgress} range={[0.85, 1]}>
-                        <div className="flex flex-col items-center">
-                            <h2 className="text-5xl md:text-7xl font-bold tracking-tighter text-white/90 text-center mb-8">
+                        <div className="flex flex-col items-center px-4">
+                            <h2 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-white/90 text-center mb-8">
                                 See Beyond.
                             </h2>
-                            <button className="px-8 py-4 bg-white text-[#050505] font-semibold rounded-full hover:scale-105 transition-transform">
+                            <button className="px-6 py-3 sm:px-8 sm:py-4 bg-white text-[#050505] text-sm sm:text-base font-semibold rounded-full hover:scale-105 transition-transform pointer-events-auto">
                                 Experience Zenith X
                             </button>
                         </div>
