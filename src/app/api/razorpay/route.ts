@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 
-<<<<<<< HEAD
 export async function POST(req: NextRequest) {
     try {
         if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
@@ -13,15 +12,6 @@ export async function POST(req: NextRequest) {
             key_secret: process.env.RAZORPAY_KEY_SECRET,
         });
 
-=======
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID!,
-    key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
-
-export async function POST(req: NextRequest) {
-    try {
->>>>>>> 3d14d77d7d7fc3991167e6d1cdbe83e87d00b0dd
         const order = await razorpay.orders.create({
             amount: 10000 * 100, // Amount in paise (₹10,000)
             currency: "INR",
