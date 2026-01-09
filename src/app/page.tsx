@@ -1,6 +1,51 @@
+'use client';
+
 import SunglassesScroll from '@/components/SunglassesScroll';
 
 export default function Home() {
+  const handleOrderNow = async () => {
+    try {
+      const response = await fetch('/api/razorpay', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.id) {
+        const options = {
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          amount: data.amount,
+          currency: data.currency,
+          name: "Zenith X Optics",
+          description: "Zenith X Sunglasses Purchase",
+          order_id: data.id,
+          handler: function (response: any) {
+            alert("Payment Successful! Payment ID: " + response.razorpay_payment_id);
+          },
+          prefill: {
+            name: "Customer",
+            email: "customer@example.com",
+            contact: "+919876543210"
+          },
+          theme: {
+            color: "#050505"
+          }
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      } else {
+        alert('Failed to create order: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error initiating purchase:', error);
+      alert('An error occurred while initiating the purchase. Please try again.');
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#050505]">
       {/* Navigation - Minimalist & Glassmorphism */}
@@ -11,7 +56,10 @@ export default function Home() {
           <a href="#" className="hover:text-white transition-colors">Design</a>
           <a href="#" className="hover:text-white transition-colors">Shop</a>
         </div>
-        <button className="px-4 py-2 sm:px-5 sm:py-2 bg-white/10 hover:bg-white/20 text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase rounded-full transition-all border border-white/10 backdrop-blur-md">
+        <button
+          onClick={handleOrderNow}
+          className="px-4 py-2 sm:px-5 sm:py-2 bg-white/10 hover:bg-white/20 text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase rounded-full transition-all border border-white/10 backdrop-blur-md cursor-pointer"
+        >
           Order Now
         </button>
       </nav>
